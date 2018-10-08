@@ -20,17 +20,20 @@ const readCounter = (callback) => {
     if (err) {
       callback(null, 0);
     } else {
+      console.log(Number(fileData));
       callback(null, Number(fileData));
     }
   });
 };
 
 const writeCounter = (count, callback) => {
-  var counterString = zeroPaddedNumber(count);
+  var counterString = zeroPaddedNumber(count);  
+  
   fs.writeFile(exports.counterFile, counterString, (err) => {
     if (err) {
       throw ('error writing counter');
     } else {
+      console.log('counterString in writeCounter: ',counterString);
       callback(null, counterString);
     }
   });
@@ -38,9 +41,36 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+exports.getNextUniqueId = (callback) => {
+  //counter = counter + 1;
+  readCounter( (err,fileData) => {
+  
+    if (err) {
+      console.log(err);
+      callback(null,zeroPaddedNumber(0));
+      return;
+    }
+    
+    console.log('fileData is: ', fileData);
+    
+      
+    writeCounter(fileData + 1, (err,counterString) => {
+      
+      if (err) {
+        console.log(err);
+        callback(null,0);
+        //return;
+      }
+      
+      console.log('counterString in getNextUniqueId: ', counterString);
+      callback(null,zeroPaddedNumber(fileData + 1));
+    });
+      
+    
+    
+  });
+  
+  
 };
 
 

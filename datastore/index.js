@@ -59,7 +59,7 @@ exports.readAll = (callback) => {
             'text': obj.text
           });   
         });
-        callback(null,data);
+        callback(null, data);
       });
   }); 
 };
@@ -90,7 +90,7 @@ exports.delete = (id, callback) => {
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
-exports.dataDir = path.join(__dirname,'data');
+exports.dataDir = path.join(__dirname, 'data');
 
 exports.initialize = () => {
   if (!fs.existsSync(exports.dataDir)) {

@@ -2,20 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-
+var Promise = require('bluebird');
 var items = {};
+
+Promise.promisifyAll(fs);
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
   counter.getNextUniqueId((err, id)=> {
     if (err) {
-      throw(err);
+      throw (err);
     } else {     
       items[id] = text;
       fs.writeFile(__dirname + '/../test/testData/' + id + '.txt', text, (err)=> {
         if (err) {
-          throw('create error');
+          throw ('create error');
         } else {
           callback(null, {text, id});
         } 
@@ -24,37 +26,46 @@ exports.create = (text, callback) => {
   });
 };
 
-exports.readAll = (callback) => {
- var data = [];    
-    
-    fs.readdir(__dirname + '/../test/testData', (err, fileNames) => {
-      fileNames.forEach( (fileName) => {
-          data.push({
-            'id': fileName.slice(0,fileName.length - 4),
-            'text': fileName.slice(0,fileName.length - 4)  
-          }); 
-      });
-      
-    callback(null,data); 
-    });   
-};
-
 exports.readOne = (id, callback) => {
   //var text = items[id];
-  fs.readdir(__dirname + '/../test/testData', (err,fileNames) => {
-    fs.readFile(__dirname + '/../test/testData/' + id + '.txt', (err,text) => {
+  fs.readdir(__dirname + '/../test/testData', (err, fileNames) => {
+    fs.readFile(__dirname + '/../test/testData/' + id + '.txt', (err, text) => {
       if (err) {
-        callback(err,0);
+        callback(err, 0);
       } else {    
-          callback(null, {
-            id : id,
-            text : text.toString()
-          });       
-        } 
+        callback(null, {
+          id: id,
+          text: text.toString()
+        });       
+      }
     });        
   }); 
 };
 
+var readOneAsync = Promise.promisify(exports.readOne);
+  
+exports.readAll = (callback) => {
+  var data = [];    
+  var promises = [];
+
+  fs.readdir(__dirname + '/../test/testData', (err, fileNames) => {
+    Promise.all(fileNames.map( (fileName) => {
+      return readOneAsync(fileName.slice(0,fileName.length - 4));})
+    )
+    .then((objs) => {
+      objs.forEach( (obj) => {
+        data.push({
+          'id': obj.id,
+          'text': obj.text
+        });   
+      });
+      callback(null,data);
+    });
+  }); 
+};
+
+
+  
 exports.update = (id, text, callback) => {
   exports.readOne(id, (err) => {
     if (!err) {
@@ -68,16 +79,6 @@ exports.update = (id, text, callback) => {
 };
 
 exports.delete = (id, callback) => {
-  // var item = items[id];
-  // delete items[id];
-  // if (!item) {
-  //   // report an error if item not found
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   callback();
-  // }
-
-
   fs.unlink(__dirname + '/../test/testData/' + id + '.txt', (err) => {
     if (err) {
       callback(err);
@@ -85,8 +86,6 @@ exports.delete = (id, callback) => {
       callback(null);
     }
   });
-     
-
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////

@@ -10,61 +10,83 @@ var items = {};
 exports.create = (text, callback) => {
   counter.getNextUniqueId((err, id)=> {
     if (err) {
-      throw(err)
+      throw(err);
     } else {     
       items[id] = text;
-      fs.writeFile(__dirname + '/../test/testData/'+ id +'.txt', text, (err)=> {
+      fs.writeFile(__dirname + '/../test/testData/' + id + '.txt', text, (err)=> {
         if (err) {
-          throw("create error");
+          throw('create error');
         } else {
-          
-          console.log('text in create: ',text);
-          callback(null,{text,id});
-        }
-          
-          
+          callback(null, {text, id});
+        } 
       });
     }
   });
-      //callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
-  var data = [];
-  _.each(items, (text, id) => {
-    data.push({ id, text });
-  });
-  callback(null, data);
+ var data = [];    
+    
+    fs.readdir(__dirname + '/../test/testData', (err, fileNames) => {
+      fileNames.forEach( (fileName) => {
+          data.push({
+            'id': fileName.slice(0,fileName.length - 4),
+            'text': fileName.slice(0,fileName.length - 4)  
+          }); 
+      });
+      
+    callback(null,data); 
+    });   
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  //var text = items[id];
+  fs.readdir(__dirname + '/../test/testData', (err,fileNames) => {
+    fs.readFile(__dirname + '/../test/testData/' + id + '.txt', (err,text) => {
+      if (err) {
+        callback(err,0);
+      } else {    
+          callback(null, {
+            id : id,
+            text : text.toString()
+          });       
+        } 
+    });        
+  }); 
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  exports.readOne(id, (err) => {
+    if (!err) {
+      fs.writeFile(__dirname + '/../test/testData/' + id + '.txt', text, (err) => {
+        callback(err, text);
+      });
+    } else {
+      callback(err, 0);
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  // var item = items[id];
+  // delete items[id];
+  // if (!item) {
+  //   // report an error if item not found
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   callback();
+  // }
+
+
+  fs.unlink(__dirname + '/../test/testData/' + id + '.txt', (err) => {
+    if (err) {
+      callback(err);
+    } else {      
+      callback(null);
+    }
+  });
+     
+
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////

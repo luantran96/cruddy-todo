@@ -50,17 +50,17 @@ exports.readAll = (callback) => {
 
   fs.readdir(__dirname + '/../test/testData', (err, fileNames) => {
     Promise.all(fileNames.map( (fileName) => {
-      return readOneAsync(fileName.slice(0,fileName.length - 4));})
-    )
-    .then((objs) => {
-      objs.forEach( (obj) => {
-        data.push({
-          'id': obj.id,
-          'text': obj.text
-        });   
+      return readOneAsync(fileName.slice(0, fileName.length - 4)); 
+    }))
+      .then((objs) => {
+        objs.forEach( (obj) => {
+          data.push({
+            'id': obj.id,
+            'text': obj.text
+          });   
+        });
+        callback(null,data);
       });
-      callback(null,data);
-    });
   }); 
 };
 
@@ -90,7 +90,7 @@ exports.delete = (id, callback) => {
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
-exports.dataDir = path.join(__dirname, 'data');
+exports.dataDir = path.join(__dirname,'data');
 
 exports.initialize = () => {
   if (!fs.existsSync(exports.dataDir)) {
